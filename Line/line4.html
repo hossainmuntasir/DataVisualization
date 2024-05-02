@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v6.js"></script>
+<select id="selectButton"></select>
+<div id="my_dataviz"></div>
+
+<script>
+    const margin = {top: 10, right: 30, bottom: 30, left: 60},
+        width = 900 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+    const svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    d3.csv("data.csv").then(function(data) {
+        const allGroup = new Set(data.map(d => d.country));
+        d3.select("#selectButton")
+          .selectAll('myOptions')
+             .data(allGroup)
+          .enter()
+            .append('option')
+          .text(d => d)
+          .attr("value", d => d);
+
+        const columns = [
+            "Females-at-birth", "Females-at-age-40", "Females-at-age-60",
+            "Females-at-age-65", "Females-at-age-80", "Males-at-birth",
+            "Males-at-age-40", "Males-at-age-60", "Males-at-age-65", "Males-at-age-80",
+            "Total-population-at-birth"
+        ];
+
+        const color = d3.scaleOrdinal()
+          .domain(columns)
+          .range(d3.schemeSet3);
+
+        const x = d3.scaleLinear()
+          .domain(d3.extent(data, d => +d.year))
+          .range([0, width]);
+        svg.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x));
+
+        const y = d3.scaleLinear()
+          .domain([0, d3.max(data, d => Math.max(...columns.map(col => +d[col])))])
+          .range([height, 0]);
+        svg.append("g")
+          .call(d3.axisLeft(y));
+
+        let line = d3.line()
+          .x(d => x(+d.year))
+          .y(d => y(+d.value));
+
+        let lines = svg.selectAll(".line")
+          .data(columns)
+          .enter()
+          .append("path")
+            .attr("class", "line")
+            .attr("fill", "none")
+            .attr("stroke", d => color(d))
+            .attr("stroke-width", 2)
+            .attr("d", d => line(data.map(p => ({year: p.year, value: p[d]}))));
+
+        function update(selectedCountry) {
+            data = data.filter(d => d.country === selectedCountry);
+            lines.data(columns)
+                .transition()
+                .duration(1000)
+                .attr("d", d => line(data.map(p => ({year: p.year, value: p[d]}))));
+        }
+
+        d3.select("#selectButton").on("change", function(event) {
+            update(d3.select(this).property("value"));
+        });
+    });
+</script>

@@ -1,0 +1,19 @@
+/* Basic styling for the SVG */
+svg {
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    fill: black;
+}
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+}

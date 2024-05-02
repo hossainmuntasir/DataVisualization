@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v6.js"></script>
+
+<!-- Initialize select buttons -->
+<select id="selectButton1"></select>
+<select id="selectButton2"></select>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<script>
+    // set the dimensions and margins of the graph
+    const margin = {top: 10, right: 30, bottom: 30, left: 60},
+        width = 900 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    const svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+    
+    // Read the data
+    d3.csv("data.csv").then(function(data) {
+    
+        // List of groups (here I have one group per column)
+        const allGroup = new Set(data.map(d => d.country))
+    
+        // Add the options to the button
+        d3.selectAll("select")
+          .selectAll('myOptions')
+             .data(allGroup)
+          .enter()
+            .append('option')
+          .text(function (d) { return d; }) // text shown in the menu
+          .attr("value", function (d) { return d; }); // corresponding value returned by the button
+    
+        // A color scale: one color for each group
+        const myColor = d3.scaleOrdinal()
+          .domain(allGroup)
+          .range(d3.schemeSet2);
+    
+        // Add X axis --> it is a date format
+        const x = d3.scaleLinear()
+          .domain(d3.extent(data, function(d) { return d.year; }))
+          .range([ 0, width ]);
+        svg.append("g")
+          .attr("transform", `translate(0, ${height})`)
+          .call(d3.axisBottom(x));
+    
+        // Add Y axis
+        const y = d3.scaleLinear()
+          .domain([0, d3.max(data, function(d) { return +d['Total-population-at-birth']; })])
+          .range([ height, 0 ]);
+        svg.append("g")
+          .call(d3.axisLeft(y));
+    
+        // Initialize lines
+        const lineGenerator = d3.line()
+          .x(function(d) { return x(d.year) })
+          .y(function(d) { return y(+d['Total-population-at-birth']) });
+
+        let lines = svg.append('g')
+          .selectAll('.line')
+          .data(['Australia', 'Australia']) // Default countries (same initially for both)
+          .enter()
+          .append("path")
+            .attr("class", "line")
+            .style("fill", "none")
+            .style("stroke-width", 4)
+            .attr("stroke", function(d, i){ return myColor(d); })
+            .datum(function(d) { return data.filter(function(db){ return db.country == d; }); })
+            .attr("d", lineGenerator);
+    
+        // A function that updates the chart
+        function update(selectedGroup, index) {
+          const dataFilter = data.filter(function(d){ return d.country == selectedGroup; });
+          d3.selectAll(".line").filter((d, i) => i === index)
+              .datum(dataFilter)
+              .transition()
+              .duration(1000)
+              .attr("d", lineGenerator)
+              .attr("stroke", myColor(selectedGroup));
+        }
+    
+        // When the button is changed, run the update function
+        d3.selectAll("select").on("change", function(event, d) {
+            const selectedOption = d3.select(this).property("value");
+            const index = d3.select(this).attr("id") === "selectButton1" ? 0 : 1;
+            update(selectedOption, index);
+        });
+    
+    });
+</script>

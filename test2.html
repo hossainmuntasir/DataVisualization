@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<!-- Color Scale -->
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script>
+    // Set the dimensions and margins of the graph
+    var margin = {top: 10, right: 100, bottom: 30, left: 30},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+    // Append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+    // Read the data
+    d3.excel("Sample.xlsx", function(data) {
+        
+        // List of groups (only two for simplification)
+        var allGroup = ["Male", "Female"];
+
+        // A color scale: one color for each group
+        var myColor = d3.scaleOrdinal()
+          .domain(allGroup)
+          .range(d3.schemeSet2);
+
+        // Add X axis --> it is a linear scale
+        var x = d3.scaleLinear()
+          .domain([1, d3.max(data, function(d) { return +d.level; })])
+          .range([ 0, width ]);
+        svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x));
+
+        // Add Y axis
+        var y = d3.scaleLinear()
+          .domain([0, d3.max(data, function(d) { return Math.max(+d.Male, +d.Female); })])
+          .range([ height, 0 ]);
+        svg.append("g")
+          .call(d3.axisLeft(y));
+
+        // Initialize lines for each group
+        allGroup.forEach(function(group, i) {
+            var line = svg.append('g').append("path")
+                .datum(data)
+                .attr("d", d3.line()
+                  .x(function(d) { return x(+d.level) })
+                  .y(function(d) { return y(+d[group]) })
+                )
+                .attr("stroke", myColor(group))
+                .style("stroke-width", 4)
+                .style("fill", "none");
+        });
+    });
+</script>
