@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab ChoroPleth</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <header><h1>Victoria Country Map 8.2</h1></header>
+    <div class="map"></div>
+
+    <script>
+        var width = 900, height = 600;
+    
+        var svg = d3.select(".map")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+    
+        var projection = d3.geoMercator()
+                            // // .center([145, -36.5])
+                            // .translate([width / 2, height / 2])
+                            // .scale(2450);
+    
+        var path = d3.geoPath().projection(projection);
+    
+        var color = d3.scaleQuantize()
+                        .range(["#ffffb2","#fecc5c","#fd8d3c","#f03b20","#bd0026"]);
+    
+        // Loading both GeoJSON and CSV data using Promise.all to handle them together
+        Promise.all([
+            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
+            d3.csv("dfgeo.csv")
+        ]).then(function([json, data]) {
+            var unemploymentLookup = new Map(data.map(d => [d.Country, parseFloat(d.Value)]));
+            
+            json.features.forEach(function(feature) {
+                var unemployment = unemploymentLookup.get(feature.properties.name);
+                feature.properties.Value = unemployment || 0; // Fallback to 0 if not found
+            });
+    
+            color.domain([
+                d3.min(data, function(d) { return parseFloat(d.Value); }),
+                d3.max(data, function(d) { return parseFloat(d.Value); })
+            ]);
+    
+            svg.selectAll("path")
+                .data(json.features)
+                .enter()
+                .append("path")
+                .attr("d", path)
+                .attr("fill", function(d) { 
+                    return color(d.properties.Value); 
+                });
+        });
+        </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive GeoMap with Year Filter</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .map {
+            margin-top: 20px;
+        }
+
+        select {
+            padding: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header><h1>Word Map by Life Expectancy</h1></header>
+    
+    <label for="year-select">Select Year:</label>
+    <select id="year-select"></select>
+    
+    <div class="map"></div>
+
+    <script>
+        var width = 900, height = 600;
+        var svg = d3.select(".map")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .style("background-color", "#b3d1ff");;
+
+        var projection = d3.geoMercator()
+                            // .center([145, -37])  // Centered on Victoria
+                            .translate([width / 2, height / 2])
+                            .scale(120);  // Adjust this scale to fit your region's geography
+
+        var path = d3.geoPath().projection(projection);
+
+        var color = d3.scaleQuantize()
+                      .range(["#ffffb2","#fecc5c","#fd8d3c","#f03b20","#bd0026"]);
+
+        Promise.all([
+            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
+            d3.csv("dfgeo.csv")
+        ]).then(function([json, data]) {
+            var years = Array.from(new Set(data.map(d => d.Year))).sort((a, b) => b - a); // Sort years in descending order
+
+            var select = d3.select("#year-select")
+                           .on("change", function() {
+                               updateMap(d3.select(this).property("value"));
+                           });
+            select.selectAll("option")
+                  .data(years)
+                  .enter()
+                  .append("option")
+                  .text(d => d)
+                  .attr("value", d => d);
+
+            select.property("value", years[0]); // Set the most recent year as the default selection
+
+            function updateMap(selectedYear) {
+                var yearData = data.filter(d => d.Year === selectedYear);
+                var unemploymentLookup = new Map(yearData.map(d => [d.Country, parseFloat(d.Value)]));
+
+                json.features.forEach(function(feature) {
+                    var unemployment = unemploymentLookup.get(feature.properties.name);
+                    feature.properties.Value = unemployment || 0; // Fallback to 0 if not found
+                });
+
+                color.domain([
+                    d3.min(yearData, d => parseFloat(d.Value)),
+                    d3.max(yearData, d => parseFloat(d.Value))
+                ]);
+
+                var paths = svg.selectAll("path")
+                               .data(json.features);
+                paths.enter()
+                     .append("path")
+                     .merge(paths)
+                     .attr("d", path)
+                     .transition()
+                     .duration(500)
+                     .attr("fill", d => color(d.properties.Value))
+                     .attr("stroke", "white");
+
+                paths.exit().remove();
+            }
+
+            updateMap(years[0]); // Initially load the map with the most recent year
+        });
+    </script>
+</body>
+</html>
