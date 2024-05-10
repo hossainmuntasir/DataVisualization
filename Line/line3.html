@@ -55,7 +55,7 @@
     
         // Add Y axis
         const y = d3.scaleLinear()
-          .domain([0, d3.max(data, function(d) { return +d['Total-population-at-birth']; })])
+          .domain([65, d3.max(data, function(d) { return +d['Total-population-at-birth']; })])
           .range([ height, 0 ]);
         svg.append("g")
           .call(d3.axisLeft(y));

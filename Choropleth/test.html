@@ -46,7 +46,11 @@
         var path = d3.geoPath().projection(projection);
 
         var color = d3.scaleQuantize()
-                      .range(["#ffffb2","#fecc5c","#fd8d3c","#f03b20","#bd0026"]);
+              .range([
+                  "#ffffcc", "#ffeda0", "#fed976", "#feb24c", "#fd8d3c",
+                  "#fc4e2a", "#e31a1c", "#bd0026", "#800026"
+              ]);
+
 
         Promise.all([
             d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),

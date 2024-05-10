@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demographic Data Visualization</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .bar { fill: steelblue; }
+        .bar:hover { fill: orange; }
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        text {
+            font: 12px sans-serif;
+        }
+        .axis text {
+            font-size: 12px;
+        }
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+        }
+    </style>
+</head>
+<body>
+<div class="chart-container">
+    <div>
+        <label for="year-select">Year:</label>
+        <select id="year-select"></select>
+        <label for="country-select">Country:</label>
+        <select id="country-select"></select>
+        <div id="my_dataviz"></div>
+    </div>
+</div>
+
+<script>
+// Set the dimensions and margins of the graph
+const margin = { top: 20, right: 30, bottom: 100, left: 50 },
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+
+// Append the svg object to the body of the page
+const svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Load the data
+d3.csv("data.csv").then(function(data) {
+    const years = Array.from(new Set(data.map(d => d.year))).sort();
+    const countries = Array.from(new Set(data.map(d => d.country))).sort();
+
+    d3.select("#year-select").selectAll("option")
+      .data(years).enter()
+      .append("option")
+      .text(d => d);
+    d3.select("#country-select").selectAll("option")
+      .data(countries).enter()
+      .append("option")
+      .text(d => d);
+
+    updateChart(years[0], countries[0]);
+
+    d3.select("#year-select").on("change", function() {
+        updateChart(this.value, d3.select("#country-select").property("value"));
+    });
+    d3.select("#country-select").on("change", function() {
+        updateChart(d3.select("#year-select").property("value"), this.value);
+    });
+
+    function updateChart(selectedYear, selectedCountry) {
+        const filteredData = data.filter(d => d.year === selectedYear && d.country === selectedCountry)[0];
+
+        const ageGroups = ['birth', '40', '60', '65', '80'];
+        const categories = ageGroups.map(group => {
+            return [
+                { name: `Females at age ${group}`, value: parseFloat(filteredData[`Females-at-age-${group}`]) },
+                { name: `Males at age ${group}`, value: parseFloat(filteredData[`Males-at-age-${group}`]) }
+            ];
+        }).flat();
+
+        svg.selectAll("*").remove();
+
+        const x0 = d3.scaleBand()
+            .range([0, width])
+            .domain(ageGroups)
+            .padding(0.1);
+
+        const x1 = d3.scaleBand()
+            .domain(['Female', 'Male'])
+            .range([0, x0.bandwidth()])
+            .padding(0.05);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(categories, d => d.value)])
+            .range([height, 0]);
+
+        svg.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x0));
+
+        svg.append("g")
+          .call(d3.axisLeft(y));
+
+        const ageGroup = svg.selectAll(".ageGroup")
+            .data(ageGroups)
+            .enter().append("g")
+            .attr("class", "ageGroup")
+            .attr("transform", d => `translate(${x0(d)}, 0)`);
+
+        ageGroup.selectAll("rect")
+            .data(d => [
+                {name: 'Female', value: filteredData[`Females-at-age-${d}`]},
+                {name: 'Male', value: filteredData[`Males-at-age-${d}`]}
+            ])
+            .enter().append("rect")
+            .attr("x", d => x1(d.name))
+            .attr("y", d => y(d.value))
+            .attr("width", x1.bandwidth())
+            .attr("height", d => height - y(d.value))
+            .attr("fill", d => d.name === 'Female' ? '#f77' : '#77f');
+    }
+});
+</script>
+</body>
+</html>

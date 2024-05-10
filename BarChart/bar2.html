@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demographic Data Visualization</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .bar { fill: steelblue; }
+        .bar:hover { fill: orange; }
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        text {
+            font: 12px sans-serif;
+        }
+        .axis text {
+            font-size: 12px;
+        }
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+        }
+    </style>
+</head>
+<body>
+<div class="chart-container">
+    <div>
+        <label for="year-select">Year:</label>
+        <select id="year-select"></select>
+        <label for="country-select">Country:</label>
+        <select id="country-select"></select>
+        <div id="my_dataviz"></div>
+    </div>
+</div>
+
+<script>
+// Set the dimensions and margins of the graph
+const margin = { top: 20, right: 20, bottom: 100, left: 60 },
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+
+// Append the svg object to the body of the page
+const svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Load the data
+d3.csv("\\Line/data.csv").then(function(data) {
+    const years = Array.from(new Set(data.map(d => d.year))).sort();
+    const countries = Array.from(new Set(data.map(d => d.country))).sort();
+
+    // Initialize the year and country selectors
+    d3.select("#year-select").selectAll("option")
+      .data(years).enter()
+      .append("option")
+      .text(d => d);
+    d3.select("#country-select").selectAll("option")
+      .data(countries).enter()
+      .append("option")
+      .text(d => d);
+
+    // Default to the first year and country in the dataset
+    updateChart(years[0], countries[0]);
+
+    // Event listeners for the dropdowns
+    d3.select("#year-select").on("change", function() {
+        updateChart(this.value, d3.select("#country-select").property("value"));
+    });
+    d3.select("#country-select").on("change", function() {
+        updateChart(d3.select("#year-select").property("value"), this.value);
+    });
+
+    // Function to update the chart based on selected year and country
+    function updateChart(selectedYear, selectedCountry) {
+        const filteredData = data.filter(d => d.year === selectedYear && d.country === selectedCountry);
+
+        // Categories and mapping to data properties
+        const categories = [
+            { name: 'Females at birth', value: filteredData[0]['Females-at-birth'] },
+            { name: 'Males at birth', value: filteredData[0]['Males-at-birth'] },
+            { name: 'Females at age 40', value: filteredData[0]['Females-at-age-40'] },
+            { name: 'Males at age 40', value: filteredData[0]['Males-at-age-40'] },
+            { name: 'Females at age 60', value: filteredData[0]['Females-at-age-60'] },
+            { name: 'Males at age 60', value: filteredData[0]['Males-at-age-60'] },
+            { name: 'Females at age 65', value: filteredData[0]['Females-at-age-65'] },
+            { name: 'Males at age 65', value: filteredData[0]['Males-at-age-65'] },
+            { name: 'Females at age 80', value: filteredData[0]['Females-at-age-80'] },
+            { name: 'Males at age 80', value: filteredData[0]['Males-at-age-80'] }
+        ];
+
+        // Clear the previous content
+        svg.selectAll("*").remove();
+
+        // Create X and Y axes
+        const x = d3.scaleBand()
+          .range([0, width])
+          .domain(categories.map(d => d.name))
+          .padding(0.1);
+        svg.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x))
+          .selectAll("text")
+            .attr("transform", "translate(-10,0)rotate(-45)")
+            .style("text-anchor", "end");
+
+        const y = d3.scaleLinear()
+          .domain([0, d3.max(categories, d => Number(d.value))])
+          .range([height, 0]);
+        svg.append("g")
+          .call(d3.axisLeft(y));
+
+        // Draw bars
+        svg.selectAll(".bar")
+          .data(categories)
+          .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", d => x(d.name))
+            .attr("y", d => y(Number(d.value)))
+            .attr("width", x.bandwidth())
+            .attr("height", d => height - y(Number(d.value)))
+            .attr("fill", "#69b3a2");
+    }
+});
+</script>
+</body>
+</html>
