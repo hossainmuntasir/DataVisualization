@@ -52,7 +52,7 @@ const svg = d3.select("#my_dataviz")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // Load the data
-d3.csv("data.csv").then(function(data) {
+d3.csv("data_updated.csv").then(function(data) {
     const years = Array.from(new Set(data.map(d => d.year))).sort();
     const countries = Array.from(new Set(data.map(d => d.country))).sort();
 

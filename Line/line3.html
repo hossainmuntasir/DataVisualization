@@ -13,7 +13,7 @@
 
 <script>
     // set the dimensions and margins of the graph
-    const margin = {top: 10, right: 30, bottom: 30, left: 60},
+    const margin = {top: 50, right: 30, bottom: 50, left: 60},
         width = 900 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
     
@@ -25,11 +25,37 @@
       .append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
     
+    // Add chart title
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Life Expectancy by Year for Selected Countries");
+    
+    // Add X axis label
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 10)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Year");
+    
+    // Add Y axis label
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left + 20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Life Expectancy (Years)");
+    
     // Read the data
-    d3.csv("data.csv").then(function(data) {
+    d3.csv("data_updated.csv").then(function(data) {
     
         // List of groups (here I have one group per column)
-        const allGroup = new Set(data.map(d => d.country))
+        const allGroup = new Set(data.map(d => d.country));
     
         // Add the options to the button
         d3.selectAll("select")
@@ -47,27 +73,27 @@
     
         // Add X axis --> it is a date format
         const x = d3.scaleLinear()
-          .domain(d3.extent(data, function(d) { return d.year; }))
+          .domain(d3.extent(data, function(d) { return +d.year; }))
           .range([ 0, width ]);
-        svg.append("g")
+        const xAxis = svg.append("g")
           .attr("transform", `translate(0, ${height})`)
           .call(d3.axisBottom(x));
     
         // Add Y axis
         const y = d3.scaleLinear()
-          .domain([65, d3.max(data, function(d) { return +d['Total-population-at-birth']; })])
+          .domain([d3.min(data, function(d) { return +d['Total-population-at-birth']; }) - 2, d3.max(data, function(d) { return +d['Total-population-at-birth']; })])
           .range([ height, 0 ]);
-        svg.append("g")
+        const yAxis = svg.append("g")
           .call(d3.axisLeft(y));
     
         // Initialize lines
         const lineGenerator = d3.line()
-          .x(function(d) { return x(d.year) })
+          .x(function(d) { return x(+d.year) })
           .y(function(d) { return y(+d['Total-population-at-birth']) });
 
         let lines = svg.append('g')
           .selectAll('.line')
-          .data(['Australia', 'Australia']) // Default countries (same initially for both)
+          .data(['Afghanistan', 'Afghanistan']) // Default countries (same initially for both)
           .enter()
           .append("path")
             .attr("class", "line")
@@ -80,6 +106,17 @@
         // A function that updates the chart
         function update(selectedGroup, index) {
           const dataFilter = data.filter(function(d){ return d.country == selectedGroup; });
+
+          // Update the x-axis domain
+          x.domain(d3.extent(dataFilter, function(d) { return +d.year; }));
+          xAxis.transition().duration(1000).call(d3.axisBottom(x));
+
+          // Calculate y-axis domain and update
+          const minY = d3.min(dataFilter, function(d) { return +d['Total-population-at-birth']; });
+          const maxY = d3.max(dataFilter, function(d) { return +d['Total-population-at-birth']; });
+          y.domain([minY - 2, maxY]);
+          yAxis.transition().duration(1000).call(d3.axisLeft(y));
+
           d3.selectAll(".line").filter((d, i) => i === index)
               .datum(dataFilter)
               .transition()

@@ -1,14 +1,79 @@
-//Line Graph
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Expectency</title>
+    <title>Combined Visualizations</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        nav {
+            background-color: #343a40;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+        }
+        nav h1 {
+            margin: 0;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 900px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .chart-container h2 {
+            background-color: #343a40;
+            color: #fff;
+            margin: 0 -20px 20px -20px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 600px;
+        }
+        @media (max-width: 600px) {
+            .chart-container {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  
+    <nav>
+        <h1>Combined Data Visualizations</h1>
+    </nav>
+    <div class="content">
+        <div class="chart-container">
+            <h2>Bar Chart</h2>
+            <iframe src="BarChart/bar3.html"></iframe>
+        </div>
+        <div class="chart-container">
+            <h2>Choropleth Map</h2>
+            <iframe src="Choropleth/test.html"></iframe>
+        </div>
+        <div class="chart-container">
+            <h2>Line Graph</h2>
+            <iframe src="Line/line3.html"></iframe>
+        </div>
+    </div>
 </body>
 </html>
-
