@@ -12,6 +12,8 @@
         }
         .container {
             display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .map {
             margin-top: 20px;
@@ -23,11 +25,20 @@
             padding: 10px;
             border-radius: 8px;
             box-shadow: 0 0 5px rgba(0,0,0,0.2);
-            margin-left: 20px;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
-        .legend rect {
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .legend-item rect {
             width: 18px;
             height: 18px;
+            margin-right: 5px;
         }
         .tooltip {
             position: absolute;
@@ -42,29 +53,13 @@
             pointer-events: none;
             opacity: 0;
         }
-        .year-filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .year-filter button {
-            margin: 2px;
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .year-filter button.selected {
-            background-color: #007BFF;
-            color: white;
+        .dimmed {
+            opacity: 0.3;
         }
     </style>
 </head>
 <body>
-    <header><h1>World Map by Life Expectancy</h1></header>
-    <div class="year-filter" id="year-filter"></div>
+    <!-- <header><h1>World Map by Life Expectancy</h1></header> -->
     <div class="container">
         <div class="map"></div>
         <div class="legend" id="legend"></div>
@@ -72,7 +67,7 @@
     <div class="tooltip" id="tooltip"></div>
 
     <script>
-        var width = 900, height = 600;
+        var width = 800, height = 450; // Adjusted to fit within the allocated space
         var svg = d3.select(".map")
                     .append("svg")
                     .attr("width", width)
@@ -81,7 +76,7 @@
         var projection = d3.geoMercator()
                             .center([0, 20]) // Centering the map to focus on populated areas
                             .translate([width / 2, height / 2])
-                            .scale(150);
+                            .scale(120); // Adjusted scale to fit the map within the dimensions
 
         var path = d3.geoPath().projection(projection);
 
@@ -103,77 +98,66 @@
 
         var tooltip = d3.select("#tooltip");
 
-        var legend = d3.select("#legend")
-                       .append("svg")
-                       .attr("width", 100)
-                       .attr("height", 220)
-                       .selectAll("g")
-                       .data(color.range().map(function(d) {
-                           var invert = color.invertExtent(d);
-                           return {
-                               color: d,
-                               value: invert[0]
-                           };
-                       }))
-                       .enter().append("g")
-                       .attr("transform", function(d, i) { return "translate(0," + (i * 20) + ")"; });
+        // Horizontal legend
+        var legend = d3.select("#legend");
 
-        legend.append("rect")
-              .attr("width", 18)
-              .attr("height", 18)
-              .style("fill", function(d) { return d.color; });
+        var legendItems = legend.selectAll(".legend-item")
+            .data(color.range().map(function(d) {
+                var invert = color.invertExtent(d);
+                return {
+                    color: d,
+                    value: invert[0]
+                };
+            }))
+            .enter().append("div")
+            .attr("class", "legend-item")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin-right", "10px"); // Add space between legend items
 
-        legend.append("text")
-              .data(color.domain())
-              .attr("x", 24)
-              .attr("y", 9)
-              .attr("dy", ".35em")
-              .text(function(d, i) { return color.domain()[i] + " - " + (color.domain()[i + 1] || "+"); });
+        legendItems.append("svg")
+            .attr("width", 18)
+            .attr("height", 18)
+            .append("rect")
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", function(d) { return d.color; });
+
+        legendItems.append("text")
+            .style("margin-left", "5px") // Add space between the color block and the text
+            .text(function(d, i) { return color.domain()[i] + "-" + (color.domain()[i + 1] || "+"); });
 
         // Add legend entry for "No Data"
-        var noDataLegend = d3.select("#legend svg")
-                             .append("g")
-                             .attr("transform", "translate(0," + (color.range().length * 20) + ")");
-        
-        noDataLegend.append("rect")
-                    .attr("width", 18)
-                    .attr("height", 18)
-                    .style("fill", "lightgray");
+        var noDataLegend = legend.append("div")
+            .attr("class", "legend-item")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin-right", "10px");
+
+        noDataLegend.append("svg")
+            .attr("width", 18)
+            .attr("height", 18)
+            .append("rect")
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", "lightgray");
 
         noDataLegend.append("text")
-                    .attr("x", 24)
-                    .attr("y", 9)
-                    .attr("dy", ".35em")
-                    .text("No Data");
+            .style("margin-left", "5px") // Add space between the color block and the text
+            .text("No Data");
+
 
         Promise.all([
             d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
-            d3.csv("data_updated.csv")  // Use the updated bar chart dataset for the choropleth map
+            d3.csv("data_updated.csv")
         ]).then(function([json, data]) {
             // Filter out Antarctica
             json.features = json.features.filter(function(d) {
                 return d.properties.name !== "Antarctica";
             });
 
-            var years = Array.from(new Set(data.map(d => d.year))).sort((a, b) => a - b); // Sort years in ascending order
-
-            var yearFilter = d3.select("#year-filter");
-
-            years.forEach(function(year) {
-                yearFilter.append("button")
-                          .text(year)
-                          .attr("data-year", year)
-                          .on("click", function() {
-                              d3.selectAll(".year-filter button").classed("selected", false);
-                              d3.select(this).classed("selected", true);
-                              updateMap(year);
-                          });
-            });
-
-            d3.select('.year-filter button[data-year="' + years[0] + '"]').classed("selected", true);
-
             function updateMap(selectedYear) {
-                var yearData = data.filter(d => d.year === selectedYear);
+                var yearData = data.filter(d => +d.year === selectedYear);
                 var lifeExpectancyLookup = new Map(yearData.map(d => [d.country, parseFloat(d['Total-population-at-birth'])]));
 
                 json.features.forEach(function(feature) {
@@ -203,18 +187,31 @@
                                .style("left", (event.pageX + 5) + "px")
                                .style("top", (event.pageY - 28) + "px");
 
-                        d3.select(this).attr("stroke-width", 1.5).attr("stroke", "white");
+                        d3.selectAll("path").classed("dimmed", true); // Dim all countries
+                        d3.select(this).classed("dimmed", false).attr("stroke-width", 1.5).attr("stroke", "white"); // Highlight hovered country
                     })
                     .on("mouseout", function(d) {
                         tooltip.transition().duration(500).style("opacity", 0);
 
+                        d3.selectAll("path").classed("dimmed", false); // Remove dimming
                         d3.select(this).attr("stroke-width", 0);
+                    })
+                    .on("click", function(event, d) {
+                        // Send message to parent window to update other charts
+                        window.parent.postMessage({ type: 'updateCountry', country: d.properties.name }, '*');
                     });
 
                 paths.exit().remove();
             }
 
-            updateMap(years[0]); // Initially load the map with the first year
+            var initialYear = 2010;
+            updateMap(initialYear); // Initially load the map with the first year
+
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'updateYear') {
+                    updateMap(event.data.year);
+                }
+            });
         });
     </script>
 </body>
