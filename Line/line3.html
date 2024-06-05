@@ -5,8 +5,12 @@
 <script src="https://d3js.org/d3.v6.js"></script>
 
 <!-- Initialize select buttons -->
-<select id="selectButton1"></select>
-<select id="selectButton2"></select>
+<div>
+    <select id="selectButton1"></select>
+    <select id="selectButton2"></select>
+    <button id="addButton">Add Country</button>
+    <button id="removeButton">Remove Country</button>
+</div>
 
 <!-- Create a div where the graph will take place -->
 <div id="my_dataviz"></div>
@@ -130,6 +134,44 @@
             const selectedOption = d3.select(this).property("value");
             const index = d3.select(this).attr("id") === "selectButton1" ? 0 : 1;
             update(selectedOption, index);
+        });
+
+        // Add country selection dropdown dynamically
+        let selectCount = 2;
+        d3.select("#addButton").on("click", function() {
+            selectCount++;
+            const newSelect = d3.select(this.parentNode).insert("select", "#addButton")
+                .attr("id", `selectButton${selectCount}`)
+                .selectAll('myOptions')
+                .data(allGroup)
+                .enter()
+                .append('option')
+                .text(function(d) { return d; })
+                .attr("value", function(d) { return d; });
+
+            // Add change event listener to the new dropdown
+            d3.select(`#selectButton${selectCount}`).on("change", function(event, d) {
+                const selectedOption = d3.select(this).property("value");
+                update(selectedOption, selectCount - 1);
+            });
+
+            // Add new line to the chart
+            lines = svg.append("path")
+                .attr("class", "line")
+                .style("fill", "none")
+                .style("stroke-width", 4)
+                .attr("stroke", myColor(Array.from(allGroup)[selectCount % allGroup.size])) // Cycle through colors
+                .datum(function(d) { return data.filter(function(db){ return db.country == Array.from(allGroup)[selectCount % allGroup.size]; }); })
+                .attr("d", lineGenerator);
+        });
+
+        // Remove country selection dropdown dynamically
+        d3.select("#removeButton").on("click", function() {
+            if (selectCount > 2) {
+                d3.select(`#selectButton${selectCount}`).remove();
+                d3.selectAll(".line").filter((d, i) => i === selectCount - 1).remove();
+                selectCount--;
+            }
         });
     
     });
