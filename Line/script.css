@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+#my_dataviz {
+    margin-top: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-item rect {
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+}
+
+.tooltip {
+    position: absolute;
+    text-align: center;
+    width: auto;
+    height: auto;
+    padding: 8px;
+    font: 14px sans-serif;
+    background: lightsteelblue;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
