@@ -77,7 +77,7 @@ d3.csv("data_updated.csv").then(function(data) {
 
     // Add Y axis
     const y = d3.scaleLinear()
-      .domain([d3.min(data, function(d) { return +d['Total-population-at-birth']; }) - 2, d3.max(data, function(d) { return +d['Total-population-at-birth']; })+ 2])
+      .domain([d3.min(data, function(d) { return +d['Total-population-at-birth']; }) - 20, d3.max(data, function(d) { return +d['Total-population-at-birth']; }) + 20])
       .range([ height, 0 ]);
     const yAxis = svg.append("g")
       .call(d3.axisLeft(y));
@@ -87,15 +87,17 @@ d3.csv("data_updated.csv").then(function(data) {
       .x(function(d) { return x(+d.year) })
       .y(function(d) { return y(+d['Total-population-at-birth']) });
 
+    let selectedCountries = ['Afghanistan', 'Afghanistan']; // Default countries
+
     let lines = svg.append('g')
       .selectAll('.line')
-      .data(['Afghanistan', 'Afghanistan']) // Default countries (same initially for both)
+      .data(selectedCountries)
       .enter()
       .append("path")
         .attr("class", "line")
         .style("fill", "none")
         .style("stroke-width", 4)
-        .attr("stroke", function(d, i){ return myColor(d); })
+        .attr("stroke", function(d){ return myColor(d); }) // Correctly assign colors here
         .datum(function(d) { return data.filter(function(db){ return db.country == d; }); })
         .attr("d", lineGenerator);
 
@@ -126,24 +128,30 @@ d3.csv("data_updated.csv").then(function(data) {
 
     // A function that updates the chart
     function update(selectedGroup, index) {
-        const dataFilter = data.filter(function(d) { return d.country == selectedGroup; });
+        selectedCountries[index] = selectedGroup;
+        const allSelectedData = data.filter(d => selectedCountries.includes(d.country));
 
         // Update the x-axis domain
-        x.domain(d3.extent(dataFilter, function(d) { return +d.year; }));
+        x.domain(d3.extent(allSelectedData, function(d) { return +d.year; }));
         xAxis.transition().duration(1000).call(d3.axisBottom(x).tickFormat(d3.format("d"))); // Updated to format years without commas
 
         // Calculate y-axis domain and update
-        const minY = d3.min(dataFilter, function(d) { return +d['Total-population-at-birth']; });
-        const maxY = d3.max(dataFilter, function(d) { return +d['Total-population-at-birth']; });
-        y.domain([minY - 2, maxY]);
+        const minY = d3.min(allSelectedData, function(d) { return +d['Total-population-at-birth']; });
+        const maxY = d3.max(allSelectedData, function(d) { return +d['Total-population-at-birth']; });
+        y.domain([minY - 10, maxY + 10]);
         yAxis.transition().duration(1000).call(d3.axisLeft(y));
 
-        d3.selectAll(".line").filter((d, i) => i === index)
-            .datum(dataFilter)
+        lines = svg.selectAll(".line")
+            .data(selectedCountries)
+            .join("path")
+            .attr("class", "line")
+            .style("fill", "none")
+            .style("stroke-width", 4)
+            .attr("stroke", function(d){ return myColor(d); }) // Correctly assign colors here
+            .datum(function(d) { return data.filter(function(db) { return db.country == d; }); })
             .transition()
             .duration(1000)
-            .attr("d", lineGenerator)
-            .attr("stroke", myColor(selectedGroup));
+            .attr("d", lineGenerator);
 
         updateLegend();
         addHoverEffect(); // Add hover effect after updating the chart
@@ -160,6 +168,7 @@ d3.csv("data_updated.csv").then(function(data) {
     let selectCount = 2;
     d3.select("#addButton").on("click", function() {
         selectCount++;
+        selectedCountries.push(Array.from(allGroup)[0]); // Default to first country
         const newSelect = d3.select(this.parentNode).insert("select", "#addButton")
             .attr("id", `selectButton${selectCount}`)
             .selectAll('myOptions')
@@ -176,12 +185,15 @@ d3.csv("data_updated.csv").then(function(data) {
         });
 
         // Add new line to the chart
-        lines = svg.append("path")
+        lines = svg.selectAll(".line")
+            .data(selectedCountries)
+            .enter()
+            .append("path")
             .attr("class", "line")
             .style("fill", "none")
             .style("stroke-width", 4)
-            .attr("stroke", myColor(Array.from(allGroup)[selectCount % allGroup.size])) // Cycle through colors
-            .datum(function(d) { return data.filter(function(db) { return db.country == Array.from(allGroup)[selectCount % allGroup.size]; }); })
+            .attr("stroke", function(d){ return myColor(d); }) // Correctly assign colors here
+            .datum(function(d) { return data.filter(function(db) { return db.country == d; }); })
             .attr("d", lineGenerator);
 
         updateLegend();
@@ -194,6 +206,7 @@ d3.csv("data_updated.csv").then(function(data) {
     d3.select("#removeButton").on("click", function() {
         if (selectCount > 2) {
             d3.select(`#selectButton${selectCount}`).remove();
+            selectedCountries.pop(); // Remove the last selected country
             d3.selectAll(".line").filter((d, i) => i === selectCount - 1).remove();
             selectCount--;
 
@@ -203,6 +216,13 @@ d3.csv("data_updated.csv").then(function(data) {
             if (selectCount === 2) {
                 d3.select("#removeButton").style("display", "none");
             }
+
+            // Recalculate y-axis domain and update
+            const allSelectedData = data.filter(d => selectedCountries.includes(d.country));
+            const minY = d3.min(allSelectedData, function(d) { return +d['Total-population-at-birth']; });
+            const maxY = d3.max(allSelectedData, function(d) { return +d['Total-population-at-birth']; });
+            y.domain([minY - 10, maxY + 10]);
+            yAxis.transition().duration(1000).call(d3.axisLeft(y));
         }
     });
 
