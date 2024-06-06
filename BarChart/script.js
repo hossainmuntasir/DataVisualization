@@ -76,8 +76,8 @@ d3.csv("data_updated.csv").then(function(data) {
         const ageGroups = ['birth', '40', '60', '65', '80'];
         const categories = ageGroups.map(group => {
             return [
-                { name: `Females at age ${group}`, value: parseFloat(filteredData[`Females-at-age-${group}`]), ageGroup: group },
-                { name: `Males at age ${group}`, value: parseFloat(filteredData[`Males-at-age-${group}`]), ageGroup: group }
+                { name: 'Female', value: parseFloat(filteredData[`Females-at-age-${group}`]), ageGroup: group },
+                { name: 'Male', value: parseFloat(filteredData[`Males-at-age-${group}`]), ageGroup: group }
             ];
         }).flat();
 
@@ -140,7 +140,7 @@ d3.csv("data_updated.csv").then(function(data) {
             .selectAll("rect")
             .on("mouseover", function(event, d) {
                 tooltip.transition().duration(200).style("opacity", .9);
-                tooltip.html(`Age Group: ${d.ageGroup}<br>Value: ${d.value}`)
+                tooltip.html(`Gender: ${d.name}<br>Value: ${d.value}`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
                 d3.select(this).attr("fill", "orange");
