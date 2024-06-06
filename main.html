@@ -33,13 +33,14 @@
             width: 100%;
         }
         .chart-container {
-            width: 48%;
-            margin: 20px 0;
+            flex: 1 1 45%;
+            margin: 20px;
             padding: 20px;
             box-sizing: border-box;
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
+            min-width: 300px;
         }
         .chart-container h2 {
             text-align: center;
@@ -66,14 +67,28 @@
         iframe {
             border: none;
             width: 100%;
-            height: 600px;
         }
-        #bar-iframe {
-            height: 700px; /* Increase the height to avoid scrolling */
+        #choropleth-iframe, #bar-iframe, #line-iframe {
+            height: 800px; /* Default height */
         }
-        @media (max-width: 600px) {
+        @media (max-width: 800px) {
             .chart-container {
-                width: 100%;
+                flex: 1 1 100%;
+            }
+            iframe {
+                height: 400px; /* Smaller height for smaller screens */
+            }
+        }
+        @media (max-width: 800px) {
+            .chart-container {
+                padding: 10px;
+            }
+            .year-filter button {
+                padding: 5px;
+                font-size: 12px;
+            }
+            iframe {
+                height: 300px; /* Even smaller height for very small screens */
             }
         }
         .intro {
@@ -146,6 +161,16 @@
                 document.getElementById('line-iframe').contentWindow.postMessage({ type: 'updateCountry', country: country }, '*');
             }
         });
+
+        function resizeIframes() {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                iframe.style.height = `${window.innerHeight * 0.7}px`;
+            });
+        }
+
+        window.addEventListener('resize', resizeIframes);
+        window.addEventListener('load', resizeIframes);
     </script>
 </body>
 </html>

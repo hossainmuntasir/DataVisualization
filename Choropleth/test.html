@@ -67,7 +67,7 @@
     <div class="tooltip" id="tooltip"></div>
 
     <script>
-        var width = 800, height = 450; // Adjusted to fit within the allocated space
+        var width = 600, height = 300; // Adjusted to fit within the allocated space
         var svg = d3.select(".map")
                     .append("svg")
                     .attr("width", width)
@@ -188,7 +188,7 @@
                                .style("top", (event.pageY - 28) + "px");
 
                         d3.selectAll("path").classed("dimmed", true); // Dim all countries
-                        d3.select(this).classed("dimmed", false).attr("stroke-width", 1.5).attr("stroke", "white"); // Highlight hovered country
+                        d3.select(this).classed("dimmed", false).attr("stroke-width", 1.0).attr("stroke", "Black"); // Highlight hovered country
                     })
                     .on("mouseout", function(d) {
                         tooltip.transition().duration(500).style("opacity", 0);
