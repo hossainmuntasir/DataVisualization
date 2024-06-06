@@ -1,0 +1,49 @@
+.bar { fill: steelblue; }
+.bar:hover { fill: orange; }
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+text {
+    font: 12px sans-serif;
+}
+.axis text {
+    font-size: 12px;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+}
+.tooltip {
+    position: absolute;
+    text-align: center;
+    width: auto;
+    height: auto;
+    padding: 8px;
+    font: 14px sans-serif;
+    background: lightsteelblue;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.legend {
+    font-size: 14px;
+    font-weight: bold;
+}
+.legend rect {
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+}
+.legend text {
+    vertical-align: middle;
+}
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    text-anchor: middle;
+}

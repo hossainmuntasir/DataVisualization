@@ -1,0 +1,105 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+}
+nav {
+    background-color: #343a40;
+    color: #fff;
+    padding: 15px;
+    text-align: center;
+}
+nav h1 {
+    margin: 0;
+}
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+.chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    width: 100%;
+}
+.chart-container {
+    flex: 1 1 45%;
+    margin: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    min-width: 300px;
+}
+.chart-container h2 {
+    text-align: center;
+    margin-top: 0;
+}
+.year-filter {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.year-filter button {
+    margin: 2px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.year-filter button.selected {
+    background-color: #007BFF;
+    color: white;
+}
+iframe {
+    border: none;
+    width: 100%;
+}
+#choropleth-iframe, #bar-iframe, #line-iframe {
+    height: 800px; /* Default height */
+}
+@media (max-width: 800px) {
+    .chart-container {
+        flex: 1 1 100%;
+    }
+    iframe {
+        height: 400px; /* Smaller height for smaller screens */
+    }
+}
+@media (max-width: 800px) {
+    .chart-container {
+        padding: 10px;
+    }
+    .year-filter button {
+        padding: 5px;
+        font-size: 12px;
+    }
+    iframe {
+        height: 300px; /* Even smaller height for very small screens */
+    }
+}
+.intro {
+    max-width: 900px;
+    margin: 20px 0;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+footer {
+    text-align: center;
+    padding: 2px;
+    background-color: #343a40;
+    color: #fff;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+}

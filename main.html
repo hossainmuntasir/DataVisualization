@@ -3,174 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title>Combined Visualizations</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://d3js.org/d3.v6.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        nav {
-            background-color: #343a40;
-            color: #fff;
-            padding: 15px;
-            text-align: center;
-        }
-        nav h1 {
-            margin: 0;
-        }
-        .content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        .chart-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            width: 100%;
-        }
-        .chart-container {
-            flex: 1 1 45%;
-            margin: 20px;
-            padding: 20px;
-            box-sizing: border-box;
-            background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            min-width: 300px;
-        }
-        .chart-container h2 {
-            text-align: center;
-            margin-top: 0;
-        }
-        .year-filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .year-filter button {
-            margin: 2px;
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .year-filter button.selected {
-            background-color: #007BFF;
-            color: white;
-        }
-        iframe {
-            border: none;
-            width: 100%;
-        }
-        #choropleth-iframe, #bar-iframe, #line-iframe {
-            height: 800px; /* Default height */
-        }
-        @media (max-width: 800px) {
-            .chart-container {
-                flex: 1 1 100%;
-            }
-            iframe {
-                height: 400px; /* Smaller height for smaller screens */
-            }
-        }
-        @media (max-width: 800px) {
-            .chart-container {
-                padding: 10px;
-            }
-            .year-filter button {
-                padding: 5px;
-                font-size: 12px;
-            }
-            iframe {
-                height: 300px; /* Even smaller height for very small screens */
-            }
-        }
-        .intro {
-            max-width: 900px;
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-    </style>
+    <script src="script.js" defer></script>
 </head>
 <body>
     <nav>
-        <h1>Combined Data Visualizations</h1>
+        <h1>Life Expectency of OECD Countries</h1>
     </nav>
     <div class="content">
         <div class="intro">
             <h2>Introduction</h2>
-            <p>Welcome to our interactive data visualization page! Here, we explore life expectancy across different countries over the years. Use the year filter to see how life expectancy changes over time. Click on a country in the world map to see detailed demographic data in the bar and line charts.</p>
+            <p>Welcome to our interactive data visualization page! Here, we explore life expectancy across different countries over the years. Use the year filter to see how life expectancy changes over time. Click on a country in the world map to see detailed demographic data in the bar chart. Select a year below to start!</p>
         </div>
         <div class="year-filter" id="year-filter"></div>
         <div class="chart-row">
             <div class="chart-container" id="map-container">
                 <h2>World Map by Life Expectancy</h2>
-                <p>This map shows the life expectancy of various countries around the world. Hover over a country to see its life expectancy for the selected year. Click on a country to see detailed demographic data in the charts below.</p>
-                <iframe src="Choropleth/test.html" id="choropleth-iframe"></iframe>
+                <p>This interactive map displays the life expectancy of countries around the world. Hover over a country to view its life expectancy for the selected year. Click on a country to see detailed demographic data in the charts on the right. Please note, interactivity will begin once a year is selected from the top!</p>
+                <iframe src="Choropleth/choropleth.html" id="choropleth-iframe"></iframe>
             </div>
             <div class="chart-container" id="bar-container">
                 <h2>Demographic Data by Age and Gender</h2>
-                <p>The bar chart displays demographic data by age and gender for the selected country and year. It shows the population distribution across different age groups.</p>
-                <iframe src="BarChart/bar3.html" id="bar-iframe"></iframe>
+                <p>The bar chart displays demographic data by age and gender for the selected country and year. It illustrates the distribution of life expectancy across various age groups within the population.</p>
+                <iframe src="BarChart/bar.html" id="bar-iframe"></iframe>
             </div>
         </div>
         <div class="chart-container" id="line-container">
             <h2>Life Expectancy Over Time</h2>
-            <p>The line graph shows the life expectancy trends over time for the selected country. Use this chart to observe how life expectancy has evolved over the years.</p>
-            <iframe src="Line/line3.html" id="line-iframe"></iframe>
+                <p>The line graph shows the life expectancy trends over time for the selected country. Use this chart to observe how life expectancy </br> has evolved over the years. Click on "Add Country" button to compare more countrues!</p>
+                <iframe src="Line/line.html" id="line-iframe"></iframe>
+            </div>
         </div>
-    </div>
-
-    <script>
-        const yearFilter = d3.select("#year-filter");
-
-        const years = Array.from({length: 13}, (v, i) => 2010 + i); // Generating years from 2010 to 2022
-
-        years.forEach(year => {
-            yearFilter.append("button")
-                .text(year)
-                .attr("data-year", year)
-                .on("click", function() {
-                    d3.selectAll(".year-filter button").classed("selected", false);
-                    d3.select(this).classed("selected", true);
-                    updateYear(year);
-                });
-        });
-
-        function updateYear(year) {
-            // Update the choropleth map, bar chart, and line graph with the selected year
-            document.getElementById('choropleth-iframe').contentWindow.postMessage({ type: 'updateYear', year: year }, '*');
-            document.getElementById('bar-iframe').contentWindow.postMessage({ type: 'updateYear', year: year }, '*');
-            document.getElementById('line-iframe').contentWindow.postMessage({ type: 'updateYear', year: year }, '*');
-        }
-
-        window.addEventListener('message', function(event) {
-            if (event.data.type === 'updateCountry') {
-                // Update the bar chart and line graph with the selected country
-                const country = event.data.country;
-                document.getElementById('bar-iframe').contentWindow.postMessage({ type: 'updateCountry', country: country }, '*');
-                document.getElementById('line-iframe').contentWindow.postMessage({ type: 'updateCountry', country: country }, '*');
-            }
-        });
-
-        function resizeIframes() {
-            const iframes = document.querySelectorAll('iframe');
-            iframes.forEach(iframe => {
-                iframe.style.height = `${window.innerHeight * 0.7}px`;
-            });
-        }
-
-        window.addEventListener('resize', resizeIframes);
-        window.addEventListener('load', resizeIframes);
-    </script>
-</body>
-</html>
+        <footer>
+            <p>Disclaimer: Please note that the information provided here is not entirely accurate; certain elements (data) have been fabricated for the purpose of completing the assignment!</p>
+        </footer>
+    </body>
+    </html>
+    

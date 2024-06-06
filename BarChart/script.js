@@ -1,70 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Demographic Data Visualization</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <style>
-        .bar { fill: steelblue; }
-        .bar:hover { fill: orange; }
-        .chart-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        text {
-            font: 12px sans-serif;
-        }
-        .axis text {
-            font-size: 12px;
-        }
-        .axis path,
-        .axis line {
-            fill: none;
-            stroke: #000;
-        }
-        .tooltip {
-            position: absolute;
-            text-align: center;
-            width: auto;
-            height: auto;
-            padding: 8px;
-            font: 14px sans-serif;
-            background: lightsteelblue;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-        }
-        .legend {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .legend rect {
-            width: 18px;
-            height: 18px;
-            margin-right: 5px;
-        }
-        .legend text {
-            vertical-align: middle;
-        }
-        .title {
-            font-size: 20px;
-            font-weight: bold;
-            text-anchor: middle;
-        }
-    </style>
-</head>
-<body>
-<div class="chart-container">
-    <div>
-        <div id="my_dataviz"></div>
-        <div id="tooltip" class="tooltip"></div>
-    </div>
-</div>
-
-<script>
 // Set the dimensions and margins of the graph
 const margin = { top: 60, right: 100, bottom: 50, left: 50 },
       width = 600 - margin.left - margin.right, // Adjust width to fit within iframe
@@ -133,7 +66,7 @@ legend.append("text")
 // Load the data
 d3.csv("data_updated.csv").then(function(data) {
     let selectedYear = 2010; // Default year
-    let selectedCountry = "Afghanistan"; // Default country
+    let selectedCountry = "Australia"; // Default country
 
     const tooltip = d3.select("#tooltip");
 
@@ -233,6 +166,3 @@ d3.csv("data_updated.csv").then(function(data) {
         }
     });
 });
-</script>
-</body>
-</html>
